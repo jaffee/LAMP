@@ -600,7 +600,6 @@ def main(argv=None):
                 return
 
         print unis_dom.toprettyxml()
-        return
 
         # Clean spurious empty lines in message (toprettyxml() abuses them)
         unis_str = ""
