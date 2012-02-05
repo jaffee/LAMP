@@ -40,34 +40,7 @@ import lamp_conf_nodes as lcn
 
 ACCEPTSLICENAME=1
 
-cert_file = os.environ['HOME'] + "/.ssl/encrypted.pem"
-key_file = os.environ['HOME'] + "/.ssl/encrypted.pem"
-
-if "HTTPS_CERT_FILE" in os.environ:
-    cert_file = os.environ["HTTPS_CERT_FILE"]
-
-if "HTTPS_KEY_FILE" in os.environ:
-    key_file = os.environ["HTTPS_KEY_FILE"]
-
-# pS Namespaces
-UNIS_NS = "http://ogf.org/schema/network/topology/unis/20100528/"
-PSCONFIG_NS = "http://ogf.org/schema/network/topology/psconfig/20100716/"
-PROTOGENI_NS ="http://ogf.org/schema/network/topology/protogeni/20100716/"
-TS_EVENTTYPE = "http://ggf.org/ns/nmwg/topology/20070809"
-XQUERY_EVENTTYPE = "http://ggf.org/ns/nmwg/tools/org/perfsonar/service/lookup/xquery/1.0"
-
-# RSpec Namespaces
-RSPEC_NS = "http://www.protogeni.net/resources/rspec/2"
-LAMP_NS = "http://protogeni.net/resources/rspec/0.2/ext/lamp/1"
-
-host = "blackseal.damsl.cis.udel.edu"
-port = 8012
-uri = "/perfSONAR_PS/services/unis"
-
-if "UNIS_ADDRESS" in os.environ:
-    host = os.environ["UNIS_ADDRESS"]
-
-sliver_poll_interval=25
+sliver_poll_interval=45
 
 node_lampcert_loc='/usr/local/etc/protogeni/ssl/lampcert.pem'
 
@@ -123,10 +96,13 @@ manifest = mysliver["manifest"]
 print "Converting and sending manifest to UNIS...."
 credential_xml = str(slicecredential)
 credential_xml = credential_xml[credential_xml.index('\n')+1:] #remove first line
-print "SLICEURN: " + SLICEURN
-print "manifest:\n" + str(manifest)
-print "credential_xml:\n" + credential_xml
-do_sendmanifest(str(manifest), SLICEURN, credential_xml)
+send_response = do_sendmanifest(str(manifest), SLICEURN, credential_xml)
+print send_response
+if send_response.index("success.ma.replaced"):
+    print "Manifest sending successful!"
+else:
+    print "Problem sending manifest - see output above"
+    exit(2)
 
 #
 #get the lamp certificate

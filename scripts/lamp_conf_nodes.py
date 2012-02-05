@@ -46,9 +46,10 @@ def do_ssh(username, host, command, options):
     args = [ssh]
     args.extend(options.split())
     args.append(username + '@' + host)
+    args.append('\'' + command + '\'')
+    print joinfields(args, ' ')
+    args = args[:-1]
     args.append(command)
-    print "sshargs:"
-    print args
     proc = subprocess.Popen(args, stdout=subprocess.PIPE,stderr=subprocess.PIPE,)
     a = proc.communicate()
     print a
@@ -59,8 +60,7 @@ def do_scp_to(username, host, local_file, remote_loc, options):
     args.extend(options.split())
     args.append(local_file)
     args.append(username + '@' + host + ':' + remote_loc)
-    print "scpargs:"
-    print args
+    print joinfields(args, ' ')
     proc = subprocess.Popen(args, stdout=subprocess.PIPE,stderr=subprocess.PIPE,)
     a = proc.communicate()
     print a
@@ -72,3 +72,10 @@ def get_hosts(manifest):
     for login in doc.getElementsByTagName("login"):
         hosts.append(str(login.getAttribute("hostname")))
     return hosts
+
+def joinfields(l, sep):
+    ans = ''
+    for item in l:
+        ans += str(item) + ' '
+    ans = ans[:-1]
+    return ans

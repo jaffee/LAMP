@@ -7,15 +7,25 @@ import getopt
 import xml.dom.minidom as dom
 from httplib import HTTPConnection, HTTPSConnection
 
-cert_file = os.environ['HOME'] + "/.ssl/encrypted.pem"
-key_file = os.environ['HOME'] + "/.ssl/encrypted.pem"
-
-if "HTTPS_CERT_FILE" in os.environ:
-    cert_file = os.environ["HTTPS_CERT_FILE"]
-
-if "HTTPS_KEY_FILE" in os.environ:
-    key_file = os.environ["HTTPS_KEY_FILE"]
-
+cert_file=''
+key_file=''
+if os.path.exists(os.environ['HOME'] + "/.ssl/encrypted.pem"):
+    cert_file = os.environ['HOME'] + "/.ssl/encrypted.pem"
+    key_file = os.environ['HOME'] + "/.ssl/encrypted.pem"
+elif os.path.exists(os.environ['HOME'] + "/.ssl/emulab.pem"):
+    cert_file = os.environ['HOME'] + "/.ssl/emulab.pem"
+    key_file = os.environ['HOME'] + "/.ssl/emulab.pem"
+else:
+    if "HTTPS_CERT_FILE" in os.environ:
+        cert_file = os.environ["HTTPS_CERT_FILE"]
+    if "HTTPS_KEY_FILE" in os.environ:
+        key_file = os.environ["HTTPS_KEY_FILE"]
+if not cert_file:
+    print "Could not find cert file - usually in ~/.ssl/emulab.pem or ~/.ssl/encrypted.pem\nSet HTTPS_CERT_FILE to the location of your cert file"
+if not key_file:
+    print "Could not find key file - usually in ~/.ssl/emulab.pem or ~/.ssl/encrypted.pem\nSet HTTPS_KEY_FILE to the location of your key file"
+if not cert_file or not key_file:
+    exit(1)
 # pS Namespaces
 UNIS_NS = "http://ogf.org/schema/network/topology/unis/20100528/"
 PSCONFIG_NS = "http://ogf.org/schema/network/topology/psconfig/20100716/"
@@ -325,7 +335,6 @@ def manifest_to_unis(manifest, slice_id):
     parsed = dict()
     rspec = manifest.documentElement
     rsnodes = rspec.getElementsByTagNameNS(RSPEC_NS, "node")
-    print RSPEC_NS
     for rsnode in rsnodes:
         node_virtual_id = rsnode.getAttribute('virtual_id')
         unis_id = create_urn(domain=slice_id, node=node_virtual_id)
@@ -544,13 +553,6 @@ class Usage(Exception):
 def do_sendmanifest(manifest_xml, slice_id, credential):
     manifest_dom = dom.parseString(manifest_xml)
     ns = manifest_dom.documentElement.getAttribute('xmlns')
-    print "JUST AFTER CONVERTING MANIFEST_XML STRING TO DOM!!!!!!!!!!!!!!!!!!!!!!!"
-#    for node in manifest_dom.childNodes:
-#        print node
-#        for child in node.childNodes:
-#            print "    " + str(child)
-#            print "      " + str(child.childNodes)
-#        print
     global RSPEC_NS
     RSPEC_NS = ns
     print "slice id: " + slice_id
@@ -575,9 +577,6 @@ def do_sendmanifest(manifest_xml, slice_id, credential):
 
 
     # Don't do the above on messages with credentials!
-    print "DEBUGGGGGGGGGGGGGGGGGGG"
-    print unis_str
-    print "END UNIS STR\n\n\n\n\n"
     message = make_UNISTSReplace_message(unis_str, credential)
     print message
     print "\n\n"
